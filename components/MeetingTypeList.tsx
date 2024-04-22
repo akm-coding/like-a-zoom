@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import HomeCard from "./HomeCard";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+import HomeCard from "./HomeCard";
 import MeetingModal from "./MeetingModal";
-import { useUser } from "@clerk/nextjs";
 import { Call, useStreamVideoClient } from "@stream-io/video-react-sdk";
-import { useToast } from "./ui/use-toast";
+import { useUser } from "@clerk/nextjs";
+import Loader from "./Loader";
 import { Textarea } from "./ui/textarea";
 import ReactDatePicker from "react-datepicker";
+import { useToast } from "./ui/use-toast";
 import { Input } from "./ui/input";
 
 const initialValues = {
@@ -24,8 +26,8 @@ const MeetingTypeList = () => {
   >(undefined);
   const [values, setValues] = useState(initialValues);
   const [callDetail, setCallDetail] = useState<Call>();
-  const user = useUser();
   const client = useStreamVideoClient();
+  const { user } = useUser();
   const { toast } = useToast();
 
   const createMeeting = async () => {
@@ -62,6 +64,8 @@ const MeetingTypeList = () => {
     }
   };
 
+  if (!client || !user) return <Loader />;
+
   const meetingLink = `${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${callDetail?.id}`;
 
   return (
@@ -75,7 +79,7 @@ const MeetingTypeList = () => {
       <HomeCard
         img="/icons/join-meeting.svg"
         title="Join Meeting"
-        description="Via invitation link"
+        description="via invitation link"
         className="bg-blue-1"
         handleClick={() => setMeetingState("isJoiningMeeting")}
       />
@@ -93,6 +97,7 @@ const MeetingTypeList = () => {
         className="bg-yellow-1"
         handleClick={() => router.push("/recordings")}
       />
+
       {!callDetail ? (
         <MeetingModal
           isOpen={meetingState === "isScheduleMeeting"}
@@ -142,6 +147,7 @@ const MeetingTypeList = () => {
           buttonText="Copy Meeting Link"
         />
       )}
+
       <MeetingModal
         isOpen={meetingState === "isJoiningMeeting"}
         onClose={() => setMeetingState(undefined)}
